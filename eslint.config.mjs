@@ -19,6 +19,7 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "move/**",
+      "brand/**",
       "design/**",
       "docs/design/**",
       "tailwind.config.snippet.ts",
