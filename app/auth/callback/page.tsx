@@ -39,12 +39,12 @@ export default function AuthCallbackPage() {
             walletName: "Google",
           }),
         });
-        const data = (await verified.json()) as { hasProfile?: boolean };
+        if (!verified.ok) throw new Error("verify failed");
         const pending = parsePendingInvite(sessionStorage.getItem(PENDING_INVITE_KEY));
-        const me = await fetch("/api/auth/me").then((r) => r.json());
+        const me = await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json());
         router.replace(
           afterAuthPath({
-            hasProfile: Boolean(data.hasProfile),
+            hasProfile: isProfileComplete(me.profile),
             pendingInvite: pending?.returnTo,
             circleCount: me.circleCount ?? 0,
           }),

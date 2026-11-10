@@ -82,11 +82,10 @@ export function SignInFlow({
       body: JSON.stringify(args),
     });
     if (!res.ok) throw new Error("verify failed");
-    const data = (await res.json()) as { hasProfile: boolean; displayName?: string | null };
     const pending = parsePendingInvite(sessionStorage.getItem(PENDING_INVITE_KEY));
-    const me = await fetch("/api/auth/me").then((r) => r.json());
+    const me = await fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json());
     const next = afterAuthPath({
-      hasProfile: data.hasProfile,
+      hasProfile: isProfileComplete(me.profile),
       pendingInvite: pending?.returnTo,
       circleCount: me.circleCount ?? 0,
     });

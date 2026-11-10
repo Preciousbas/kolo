@@ -141,19 +141,19 @@ export function ProfileForm({ address, authMethod, walletName, initial }: Props)
         setDisplayName(fromMe.displayName);
         setUsername(fromMe.username);
       }
+      // Navigate only on fresh complete data — never on a stale hasProfile flag.
       if (!isProfileComplete(fresh)) {
         setErrors([{ field: "form", message: "Couldn't save. Check your connection and try again." }]);
         return;
       }
       const pending = parsePendingInvite(sessionStorage.getItem(PENDING_INVITE_KEY));
       const returnTo = new URLSearchParams(window.location.search).get("returnTo");
-      router.push(
-        afterAuthPath({
-          hasProfile: true,
-          pendingInvite: pending?.returnTo ?? (returnTo?.startsWith("/") ? returnTo : null),
-          circleCount: me.circleCount ?? 0,
-        }),
-      );
+      const next = afterAuthPath({
+        hasProfile: true,
+        pendingInvite: pending?.returnTo ?? (returnTo?.startsWith("/") ? returnTo : null),
+        circleCount: typeof me.circleCount === "number" ? me.circleCount : 0,
+      });
+      router.push(next);
       router.refresh();
     } catch {
       setErrors([{ field: "form", message: "Couldn't save. Check your connection and try again." }]);
