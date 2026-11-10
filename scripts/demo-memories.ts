@@ -207,7 +207,9 @@ async function main() {
   }
 
   const saved = readSavedDemoState();
-  const circleId = saved.circleId || process.env.KOLO_DEMO_CIRCLE_ID || "";
+  // Dry-run can plan from synthetic demo-state events; --write still needs a real id.
+  const syntheticCircleId = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const circleId = saved.circleId || process.env.KOLO_DEMO_CIRCLE_ID || (args.dryRun ? syntheticCircleId : "");
   if (!circleId) {
     emitErr("missing circleId in data/demo-state.json");
     process.exit(1);
