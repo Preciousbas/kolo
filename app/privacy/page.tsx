@@ -1,6 +1,12 @@
+import Link from "next/link";
+import { KoloLogo } from "@/components/kolo-logo";
+
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-xl px-6 py-12">
+      <Link href="/" className="mb-8 inline-block active:scale-95" aria-label="Kolo home">
+        <KoloLogo variant="lockup" />
+      </Link>
       <h1 className="text-h1 font-extrabold">Privacy notice</h1>
       <p className="mt-4 text-body text-muted-foreground">Kolo is a testnet beta.</p>
       <p className="mt-4 text-body">

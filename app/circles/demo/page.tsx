@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KoloLogo } from "@/components/kolo-logo";
 import { readCircle } from "@/lib/circle";
 import {
   demoNameByAddress,
@@ -130,8 +131,8 @@ export default async function DemoCirclePage() {
   return (
     <main className="mx-auto min-h-screen max-w-xl bg-background px-6 py-8 text-foreground">
       <nav className="mb-8 flex items-center justify-between text-sm">
-        <Link href="/" className="font-semibold text-primary hover:opacity-90 active:scale-95">
-          Kolo
+        <Link href="/" className="active:scale-95" aria-label="Kolo home">
+          <KoloLogo variant="lockup" />
         </Link>
         <span className="rounded-full border border-dashed border-warning bg-warning-soft px-3 py-1 text-micro font-bold uppercase tracking-wide text-warning">
           Test mode · not real money

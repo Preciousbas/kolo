@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { KoloLogo } from "@/components/kolo-logo";
 
 export default function HomePage() {
   return (
@@ -13,14 +13,7 @@ export default function HomePage() {
         }}
       />
       <div className="relative">
-        <Image
-          src="/brand/kolo_lockup_light.svg"
-          alt="Kolo"
-          width={160}
-          height={40}
-          className="h-10 w-auto"
-          priority
-        />
+        <KoloLogo variant="lockup" className="h-12 w-auto" priority />
         <h1 className="mt-10 text-display font-extrabold tracking-tight">
           Save together. Get paid on your turn.
         </h1>

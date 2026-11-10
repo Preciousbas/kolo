@@ -2,8 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { decodeSession, SESSION_COOKIE } from "./lib/crypto-session";
 import { isPublicPath, signedOutDestination } from "./lib/route-guards";
 
+const STATIC_ASSET =
+  /^\/(?:favicon\.ico|icon[^/]*|apple-touch-icon[^/]*|maskable[^/]*|og-image[^/]*|twitter-image[^/]*|site\.webmanifest|manifest\.webmanifest)$/i;
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (STATIC_ASSET.test(pathname) || pathname.startsWith("/brand/")) {
+    return NextResponse.next();
+  }
   if (isPublicPath(pathname) || pathname.startsWith("/api/")) {
     if (pathname.startsWith("/api/") && !isPublicPath(pathname) && pathname !== "/api/public-config") {
       return NextResponse.next();
@@ -23,6 +29,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // Let public static assets through (icons, OG/Twitter images, brand, manifest).
   matcher: [
-    "/((?!_next/static|_next/image|brand|.*\\.(?:ico|png|svg|jpg|jpeg|gif|webp|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|brand|favicon\\.ico|icon[^/]*|apple-touch-icon[^/]*|maskable[^/]*|og-image[^/]*|twitter-image[^/]*|site\\.webmanifest|manifest\\.webmanifest|.*\\.(?:ico|png|svg|jpg|jpeg|gif|webp|webmanifest)$).*)",
   ],
 };

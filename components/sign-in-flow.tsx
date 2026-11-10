@@ -9,11 +9,11 @@ import {
 import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
 import { isGoogleWallet } from "@mysten/enoki";
 import { Check, Loader2, Wallet } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { GoogleG } from "@/components/google-g";
+import { KoloLogo } from "@/components/kolo-logo";
 import { KoloSheet } from "@/components/kolo-sheet";
 import { PENDING_INVITE_KEY, parsePendingInvite, pendingInviteFromCode } from "@/lib/pending-invite";
 import { isProfileComplete } from "@/lib/profile";
@@ -172,7 +172,7 @@ export function SignInFlow({
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col bg-background px-6 pb-8 pt-10 text-foreground">
-      <Image src="/brand/kolo_lockup_light.svg" alt="Kolo" width={160} height={48} className="h-12 w-auto self-start" priority />
+      <KoloLogo variant="lockup" className="h-12 w-auto self-start" priority />
       <h1 className="mt-8 text-display font-extrabold tracking-tight">
         Save together.
         <br />

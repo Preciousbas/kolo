@@ -29,6 +29,6 @@
   --input: 36 39% 84%; /* #E6D9C6 border */
   --ring: 17 72% 39%; /* #A9441C primary */
   --radius: 1rem;
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 html{font-family:var(--font-sans);font-feature-settings:'tnum' 1;-webkit-font-smoothing:antialiased;}
