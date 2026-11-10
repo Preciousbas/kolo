@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { kvDel, kvGet, kvSet } from "./kv";
+import { kvGet, kvSet } from "./kv";
 import { getAddressByUsername, getProfile, normalizeAddress } from "./auth-store";
 import { publicProfile } from "./profile";
 

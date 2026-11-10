@@ -1,4 +1,4 @@
-import { createInvite, getStoredCircle, isCircleMember, listCircleInvites } from "@/lib/circle-registry";
+import { createInvite, getStoredCircle, listCircleInvites } from "@/lib/circle-registry";
 import { getRequestSession, jsonError } from "@/lib/request-session";
 
 export const dynamic = "force-dynamic";
