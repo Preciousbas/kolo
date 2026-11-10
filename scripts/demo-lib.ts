@@ -109,7 +109,7 @@ export function requireSeedEnv(action = "seed"): { packageId: string; mnemonic: 
 }
 
 let cachedClient: SuiGrpcClient | null = null;
-let cachedVia: "tatum" | "grpc" | null = null;
+let cachedVia: "tatum" | "grpc" | "graphql" | "saved" | null = null;
 
 export async function client(): Promise<SuiGrpcClient> {
   if (!cachedClient) {

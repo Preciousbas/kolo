@@ -6,7 +6,7 @@ const TIMEOUT_MS = 8_000;
 const MIN_GAP_MS = 340; // ≤3 req/s
 const CHAIN_CACHE_MS = 15_000;
 
-export type TransportVia = "graphql" | "grpc" | "jsonrpc" | "fullnode";
+export type TransportVia = "graphql" | "grpc" | "jsonrpc" | "fullnode" | "saved";
 
 export type TransportResult<T> = {
   data: T;

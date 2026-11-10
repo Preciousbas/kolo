@@ -389,6 +389,7 @@ export async function getCircleState(
     grpc: "grpc",
     jsonrpc: "graphql",
     fullnode: "graphql",
+    saved: "saved",
   };
 
   const view = parseCircleState({

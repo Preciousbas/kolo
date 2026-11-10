@@ -185,7 +185,7 @@ function eventsToTrust(
   });
   return fromMemories(
     memories,
-    mine.map(() => null),
+    mine.map(() => ""),
     mine.map(() => null),
     circleId,
     member,

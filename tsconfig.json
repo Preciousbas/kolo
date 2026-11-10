@@ -23,5 +23,14 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "move", "design", "docs/design", "tailwind.config.snippet.ts", "tailwind.kolo.js"]
+  "exclude": [
+    "node_modules",
+    "move",
+    "design",
+    "docs/design",
+    "brand/brand/tokens/tailwind.config.snippet.ts",
+    "brand/brand/tokens/tailwind.kolo.js",
+    "tailwind.config.snippet.ts",
+    "tailwind.kolo.js"
+  ]
 }
