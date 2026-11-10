@@ -1,56 +1,78 @@
 # Kolo
 
-Ajo / esusu rotating savings for the Tatum x Walrus hackathon. Stage 1 is the foundation: a Next.js app, Tatum and MemWal helpers, and a spike Move escrow. Screens are placeholders until HANDOFF.md is applied.
+**A rotating savings circle (ajo / esusu) on Sui that pays out on its own and remembers who kept their word.**
 
-USDC types are testnet and mainnet. The app defaults to testnet. Mainnet stays locked unless `KOLO_NETWORK=mainnet` and `KOLO_ALLOW_MAINNET=yes`. This repo does not publish packages or send transactions.
+Built for the Tatum x Walrus "Total Recall" hackathon (Consumer Finance Apps).
 
-## Quick start
+- **Live demo (no sign-in needed to view):** https://kolo-jade.vercel.app/circles/demo
+- **Demo video:** https://drive.google.com/file/d/1yqn_M2nQpg0sl9ORSQxzD6mQ7LgV0nO4/view
+- **Escrow contract (Sui testnet):** `0x0a6110f7434f3b0db482cc8e9b4379a2be70cbe39a88273516d56310101484d5`
+- **Memories:** 18 Seal-encrypted memories on Walrus mainnet
+
+## The problem
+
+Millions of people in Nigeria save through ajo: everyone pays the same amount each month and one member takes the whole pot, in turn, until everyone has been paid once. It runs on trust. The organiser holds the cash, the only record is a WhatsApp chat, and there is no way to check whether a new member pays on time.
+
+## What Kolo does
+
+1. **Circles of 3 to 6 members, monthly, one cycle.** N members means N rounds and one payout each. Payout order is join order.
+2. **The pot is an escrow.** Contributions go into a Move contract on Sui, not into anyone's account. When the last member pays, the contract pays the member whose turn it is, automatically. A manual release exists as a backup, but it only works once everyone has paid, and it can only pay the member whose turn it is, once per round.
+3. **Live from Tatum.** Circle state and `Contributed` / `PaidOut` events are read through Tatum's Sui GraphQL gateway. The pot is shown in USDC and in naira using Tatum's price API.
+4. **Kolo remembers.** Every payment and payout is written as a small memory to Walrus Memory (mainnet), tagged on time or late, with wallet addresses only and no names. Kolo reads those memories back to build each member's track record.
+5. **Trust before you invite.** When a circle creator invites someone by username, Kolo shows that person's record across their circles (for example "Paid on time 3 of 3 rounds") before the invite is sent.
+
+Escrow uses testnet USDC (test money). Memories are on Walrus mainnet. Sign in and a Sui wallet are needed to create or join a circle.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  U[Member] -->|pay / join| C[Move escrow on Sui testnet]
+  C -->|events| T[Tatum Sui GraphQL gateway]
+  T --> A[Kolo app on Vercel / Next.js]
+  P[Tatum price API] -->|USDC to NGN| A
+  A -->|remember / recall| W[Walrus Memory mainnet]
+  W -->|track record| A
+```
+
+## Repo layout
+
+| Path | What is there |
+| --- | --- |
+| `app/` | Next.js App Router pages and API routes (`/circles`, `/join`, `/profile`, `/api/*`) |
+| `components/` | UI components (Studio design system) |
+| `lib/` | Tatum reads (`tatum.ts`, `feed.ts`, `price.ts`), memory (`memory-writer.ts`, `memory-record.ts`, `member-trust.ts`), auth and circle logic |
+| `move/` | `circle.move` escrow contract and Move tests |
+| `tests/` | Vitest unit and route tests |
+| `scripts/` | Demo seeding, Tatum smoke test, memory demo, secret scanner |
+| `data/` | Seeded demo circle and the public index of mainnet memory blob IDs |
+| `docs/` | Tatum gateway methods used |
+| `brand/` | Studio brand kit, screen specs and video assets |
+
+## Run it locally
 
 ```bash
 nvm use
 npm ci
-cp .env.example .env.local
+cp .env.example .env.local   # fill in your own keys
 npm run dev
 ```
 
-`npm run dev` serves the placeholder screens. `GET /api/health` returns `{ network, tatum, memory }` and never returns secret values.
+Checks:
 
 ```bash
-npm test
-npm run spike:mock
+npm test             # Vitest
+npm run lint
+npm run typecheck
+npm run move:test    # needs Sui CLI testnet-v1.82.2
 npm run check:secrets
-npm run move:test
 ```
 
-`npm run spike` calls Tatum and MemWal only when the matching env vars are set. With an empty env it prints `SKIP` lines and exits 0. `--mock` runs the MemWal round trip offline.
-
-Move tests need the Sui CLI (`testnet-v1.82.2`). Do not run `sui client publish` from this repo. Publish on testnet yourself and put the package id in `KOLO_PACKAGE_ID`.
-
-## Env
-
-Names only. Values live in `.env` or `.env.local`, and later in Vercel. `.env.example` is the only env file that is committed.
-
-| Name | Kind |
-| --- | --- |
-| KOLO_NETWORK | public, `testnet` (default) or `mainnet` |
-| KOLO_ALLOW_MAINNET | public, must be `yes` to unlock mainnet |
-| TATUM_API_KEY | secret |
-| TATUM_ID | public |
-| MEMWAL_PRIVATE_KEY | secret |
-| MEMWAL_ACCOUNT_ID | public |
-| MEMWAL_AGENT_ID | public |
-| MEMWAL_SERVER_URL | public, optional |
-| MEMWAL_NAMESPACE | public |
-| KOLO_MEMORY_MOCK | public, `1` forces the mock |
-| NEXT_PUBLIC_KOLO_NETWORK | public |
-| KOLO_PACKAGE_ID | public, after testnet publish |
-| SUI_ADDRESS | public |
-| CRON_SECRET | secret |
-| LLM_API_KEY | secret, unused in stage 1 |
+`GET /api/health` reports network, Tatum and memory status without returning any secret values.
 
 ## How Kolo uses Tatum
 
-All chain reads go through Tatum first. Writes stay out of this stage (prompt 3 is read-only).
+All chain reads go through Tatum first.
 
 | Interface | Endpoint / method | Why |
 | --- | --- | --- |
@@ -73,7 +95,7 @@ Credit budget: free plan ~100K lifetime, ≤3 req/s. Chain reads cached 15s; pri
 
 ## How Kolo uses Walrus Memory
 
-After every contribution or payout event, Kolo writes one small JSON memory to Walrus Memory (MemWal). The trust panel on `/circles/demo` (“Kolo remembers”) is read back from memory via `recall`, not from the chain.
+After every contribution or payout event, Kolo writes one small JSON memory to Walrus Memory (MemWal). The trust panel on `/circles/demo` ("Kolo remembers") is read back from memory via `recall`, not from the chain.
 
 ### What one memory holds
 
@@ -87,7 +109,7 @@ Namespace is `kolo:<circleId>`. Each successful write records `blob_id` in `data
 
 ### Trust view and nudge
 
-`getMemberTrust` calls `recall({ query: "payments by <member> in circle <circleId>", namespace, limit: 20 })`, parses JSON from each hit, keeps that member, dedupes by `txDigest`, and returns on-time / late counts plus blob links (`source: "memory"`). If recall fails, it falls back to the ledger / feed (`source: "ledger"`). The panel shows a learning-loop nudge from memory (text only in this stage), e.g. late payers get an earlier-reminder line.
+`getMemberTrust` calls `recall({ query: "payments by <member> in circle <circleId>", namespace, limit: 20 })`, parses JSON from each hit, keeps that member, dedupes by `txDigest`, and returns on-time / late counts plus blob links (`source: "memory"`). If recall fails, it falls back to the ledger / feed (`source: "ledger"`). The panel shows a learning-loop nudge from memory, e.g. late payers get an earlier-reminder line.
 
 ### Mainnet switch and cost cap
 
@@ -95,22 +117,33 @@ Escrow `KOLO_NETWORK` stays testnet. Memory network is separate: `memoryNetwork(
 
 Docs: [MemWal API reference](https://docs.wal.app/walrus-memory/sdk/api-reference) · [versioned datasets / blob IDs](https://github.com/MystenLabs/MemWal/blob/dev/docs/sdk/versioned-datasets.md) · [hackathon rules](https://thewalrussessions.wal.app/tatum-total-recall/index.html)
 
-## Hard rules
+## Env
 
-- Secrets stay in env vars. Do not hard-code, log, or print them. Print `set` or `missing` only.
-- Commit `.env.example` only. No other `.env*` file.
-- Commit messages are plain conventional commits. No co-author trailer, no "Made with Cursor".
-- The commit hook lives in `.githooks/commit-msg`. Do not remove it, do not change `core.hooksPath`, and do not add Husky.
-- Testnet only. No mainnet transactions. No deploys and no pushes unless you ask for them in chat.
-- Do not create accounts, buy anything, or call faucets from the agent.
+Names only. Values live in `.env.local` locally and in Vercel for the hosted app. `.env.example` is the only env file that is committed.
 
-## Design tokens
+| Name | Kind |
+| --- | --- |
+| KOLO_NETWORK | public, `testnet` (default) or `mainnet` |
+| KOLO_ALLOW_MAINNET | public, must be `yes` to unlock mainnet |
+| TATUM_API_KEY | secret |
+| TATUM_ID | public |
+| MEMWAL_PRIVATE_KEY | secret |
+| MEMWAL_ACCOUNT_ID | public |
+| MEMWAL_AGENT_ID | public |
+| MEMWAL_SERVER_URL | public, optional |
+| MEMWAL_NAMESPACE | public |
+| KOLO_MEMORY_MOCK | public, `1` forces the mock |
+| NEXT_PUBLIC_KOLO_NETWORK | public |
+| KOLO_PACKAGE_ID | public, the published testnet package |
+| SUI_ADDRESS | public |
+| CRON_SECRET | secret |
 
-Studio's zip (Drive file `1NK0TE7VNnOjy9_jAHxoZyzBfL0o7_Ujb`) returned Access denied, so `design/kolo-tokens.css`, `design/tailwind.kolo.js`, and `design/brand/final` are not in this tree. Placeholder screens use Plus Jakarta Sans. Copy the Studio files into `design/` before prompt 7 and replace the placeholder colours with those tokens. Do not invent a brand palette on top of them.
+## Safety
 
-## UNCONFIRMED
+- Secrets live only in environment variables and are never logged. `.env.example` is the only env file committed, and `npm run check:secrets` runs in CI.
+- Escrow stays on testnet. Mainnet memory writes need two explicit flags and are capped.
+- Memories never contain names, emails or phone numbers. Blobs are Seal-encrypted, so a Walruscan link proves storage without showing contents.
 
-- Tatum testnet JSON-RPC may 404 even with a key. `latestCheckpoint()` tries JSON-RPC, then GraphQL.
-- The Price API response shape is parsed defensively. `symbol=USDC` may not return a value.
-- Sui CLI archive name used in CI: `sui-testnet-v1.82.2-ubuntu-x86_64.tgz` (listed on that GitHub release). The tarball layout is discovered with `find`.
-- Move.toml uses `edition = "2024.beta"` because that is the edition in the `testnet-v1.82.2` example packages.
+## Author
+
+Built by Precious Bassey ([@PreciousBasseyy](https://x.com/PreciousBasseyy)).
