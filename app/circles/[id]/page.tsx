@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { CircleHealth } from "@/components/circle-health";
+import { InviteByUsername } from "@/components/invite-by-username";
+import { normalizeAddress } from "@/lib/auth-store";
 import { isDemoCircleId } from "@/lib/circle-access";
 import { getStoredCircle, isCircleMember, memberDisplayNames } from "@/lib/circle-registry";
 import { requireUser } from "@/lib/require-user";
-import { CircleHealth } from "@/components/circle-health";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,7 @@ export default async function CircleDetailPage({
     );
   }
   const names = await memberDisplayNames(circle);
+  const isCreator = normalizeAddress(session.address) === normalizeAddress(circle.creator);
   return (
     <main className="mx-auto min-h-screen max-w-xl bg-background">
       <AppHeader
@@ -40,7 +43,7 @@ export default async function CircleDetailPage({
         authMethod={session.authMethod}
         walletName={session.walletName}
       />
-      <div className="space-y-3 px-5">
+      <div className="space-y-3 px-5 pb-8">
         <p className="text-small text-muted-foreground">
           {circle.members.length} of {circle.maxMembers} members {circle.started ? "· started" : "· open"}
         </p>
@@ -51,6 +54,7 @@ export default async function CircleDetailPage({
             </li>
           ))}
         </ul>
+        {isCreator && !circle.started ? <InviteByUsername circleId={circle.id} /> : null}
         <CircleHealth />
       </div>
     </main>

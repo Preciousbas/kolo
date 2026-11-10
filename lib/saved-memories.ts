@@ -53,17 +53,29 @@ export function readSavedMainnetMemories(): SavedMainnetMemory[] {
   }
 }
 
+function normAddr(a: string): string {
+  return a.replace(/^0x/i, "").toLowerCase();
+}
+
 export function filterSavedMemoriesForMember(
   memories: SavedMainnetMemory[],
   circleId: string,
   member: string,
 ): SavedMainnetMemory[] {
-  const norm = (a: string) => a.replace(/^0x/i, "").toLowerCase();
-  const circle = norm(circleId);
-  const who = norm(member);
+  const circle = normAddr(circleId);
+  const who = normAddr(member);
   return memories.filter(
     (m) =>
-      norm(m.member) === who &&
-      (norm(m.circleId) === circle || m.circleId === circleId),
+      normAddr(m.member) === who &&
+      (normAddr(m.circleId) === circle || m.circleId === circleId),
   );
+}
+
+/** All saved mainnet memories for a wallet across every circle. */
+export function filterSavedMemoriesForAddress(
+  memories: SavedMainnetMemory[],
+  member: string,
+): SavedMainnetMemory[] {
+  const who = normAddr(member);
+  return memories.filter((m) => normAddr(m.member) === who);
 }

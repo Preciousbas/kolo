@@ -4,6 +4,7 @@ import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { InviteTrustLine, type InviteTrustView } from "@/components/invite-trust-line";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ type Preview = {
   code: string;
   circle: { id: string; name: string; memberCount: number; maxMembers: number; amount: number };
   inviter: string | null;
+  creatorTrust?: InviteTrustView | null;
 };
 
 export function JoinCircle({
@@ -137,6 +139,7 @@ export function JoinCircle({
             </p>
           </section>
         ) : null}
+        {preview?.creatorTrust ? <InviteTrustLine trust={preview.creatorTrust} /> : null}
       </div>
       <div className="mt-auto space-y-2 border-t border-border/70 px-5 pb-7 pt-3">
         <Button disabled={!preview || busy} className="h-14 w-full rounded-2xl text-[16px] font-bold" onClick={join}>

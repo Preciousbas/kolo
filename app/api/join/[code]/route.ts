@@ -1,4 +1,5 @@
 import { addCircleMember, previewInvite } from "@/lib/circle-registry";
+import { getAddressTrustSummary } from "@/lib/member-trust";
 import { getRequestSession, jsonError } from "@/lib/request-session";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,25 @@ export async function GET(
             : "We can't find a circle with that code. Check it with the person who sent it. Codes look like KOLO- and 4 letters or numbers.";
     return Response.json({ ok: false, reason: preview.reason, error: message }, { status: 404 });
   }
+
+  let creatorTrust: {
+    line: string;
+    hasRecord: boolean;
+    blobLink: string | null;
+  } | null = null;
+  try {
+    const summary = await getAddressTrustSummary(preview.circle.creator, {
+      recallTimeoutMs: 1_500,
+    });
+    creatorTrust = {
+      line: summary.line,
+      hasRecord: summary.hasRecord,
+      blobLink: summary.blobLink,
+    };
+  } catch {
+    creatorTrust = null;
+  }
+
   return Response.json({
     ok: true,
     code: preview.invite.code,
@@ -33,6 +53,7 @@ export async function GET(
       amount: preview.circle.amount,
     },
     inviter: preview.inviterName ?? null,
+    creatorTrust,
   });
 }
 

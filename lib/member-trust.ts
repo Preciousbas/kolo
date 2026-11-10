@@ -14,7 +14,9 @@ import {
   type KoloMemory,
 } from "./memory-record";
 import { readLedger, resolveMemoryNetworkLabel, type LedgerRow } from "./memory-writer";
+import { listUserCircleIds } from "./circle-registry";
 import {
+  filterSavedMemoriesForAddress,
   filterSavedMemoriesForMember,
   readSavedMainnetMemories,
   type SavedMainnetMemory,
@@ -365,4 +367,156 @@ export async function getMemberTrust(
   } catch {
     return fromLedger;
   }
+}
+
+export type AddressTrustSummary = {
+  onTime: number;
+  late: number;
+  paidRounds: number;
+  paidOut: number;
+  hasRecord: boolean;
+  blobLink: string | null;
+  source: MemberTrustSource | "none";
+  network: string;
+  /** Counts only — never includes personal names. */
+  line: string;
+};
+
+/** Invite-screen copy: counts only, optional Walrus storage mention. */
+export function formatInviteTrustLine(args: {
+  onTime: number;
+  late: number;
+  hasRecord: boolean;
+  blobLink?: string | null;
+}): string {
+  if (!args.hasRecord) return "New to Kolo, no record yet";
+  const paid = args.onTime + args.late;
+  const base = `Paid on time ${args.onTime} of ${Math.max(paid, args.onTime)} rounds`;
+  return args.blobLink ? `${base} · stored on Walrus` : base;
+}
+
+function emptyTrustSummary(): AddressTrustSummary {
+  return {
+    onTime: 0,
+    late: 0,
+    paidRounds: 0,
+    paidOut: 0,
+    hasRecord: false,
+    blobLink: null,
+    source: "none",
+    network: "mainnet",
+    line: formatInviteTrustLine({ onTime: 0, late: 0, hasRecord: false }),
+  };
+}
+
+function summaryFromSavedAddress(member: string): AddressTrustSummary {
+  const saved = filterSavedMemoriesForAddress(readSavedMainnetMemories(), member);
+  if (saved.length === 0) return emptyTrustSummary();
+
+  let onTime = 0;
+  let late = 0;
+  let paidOut = 0;
+  let blobLink: string | null = null;
+  const seen = new Set<string>();
+  for (const row of saved) {
+    const key = `${row.txDigest}:${row.kind}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (row.kind === "paid") {
+      if (row.timing === "late") late += 1;
+      else onTime += 1;
+    } else {
+      paidOut += 1;
+    }
+    if (!blobLink) {
+      blobLink = row.link || `https://walruscan.com/mainnet/blob/${row.blobId}`;
+    }
+  }
+  const paidRounds = onTime + late;
+  const hasRecord = paidRounds + paidOut > 0;
+  return {
+    onTime,
+    late,
+    paidRounds,
+    paidOut,
+    hasRecord,
+    blobLink,
+    source: "memory (saved index)",
+    network: "mainnet",
+    line: formatInviteTrustLine({ onTime, late, hasRecord, blobLink }),
+  };
+}
+
+/**
+ * Trust counts for a wallet across every circle we know about.
+ * Uses getMemberTrust per circle (timeout + saved-index fallback), then
+ * falls back to aggregating data/memories.mainnet.json for that address.
+ */
+export async function getAddressTrustSummary(
+  member: string,
+  opts?: { recallTimeoutMs?: number; packageId?: string },
+): Promise<AddressTrustSummary> {
+  const circleIds = new Set<string>();
+  for (const row of filterSavedMemoriesForAddress(readSavedMainnetMemories(), member)) {
+    circleIds.add(row.circleId);
+  }
+  try {
+    for (const id of await listUserCircleIds(member)) circleIds.add(id);
+  } catch {
+    // registry unavailable — saved index is enough
+  }
+
+  if (circleIds.size === 0) {
+    return summaryFromSavedAddress(member);
+  }
+
+  let onTime = 0;
+  let late = 0;
+  let paidOut = 0;
+  let blobLink: string | null = null;
+  let source: MemberTrustSource | "none" = "none";
+  let network = "mainnet";
+  const seen = new Set<string>();
+
+  for (const circleId of circleIds) {
+    const trust = await getMemberTrust(circleId, member, {
+      memberLabel: "Member",
+      recallTimeoutMs: opts?.recallTimeoutMs,
+      packageId: opts?.packageId,
+    });
+    for (const round of trust.rounds) {
+      const key = `${round.txDigest}:${round.kind}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (round.kind === "paid") {
+        if (round.timing === "late") late += 1;
+        else if (round.timing === "on_time") onTime += 1;
+      } else {
+        paidOut += 1;
+      }
+      if (!blobLink && round.link) blobLink = round.link;
+    }
+    if (trust.rounds.length > 0) {
+      source = trust.source;
+      network = trust.network === "mock" ? "mainnet" : trust.network;
+    }
+  }
+
+  if (onTime + late + paidOut === 0) {
+    return summaryFromSavedAddress(member);
+  }
+
+  const paidRounds = onTime + late;
+  const hasRecord = paidRounds + paidOut > 0;
+  return {
+    onTime,
+    late,
+    paidRounds,
+    paidOut,
+    hasRecord,
+    blobLink,
+    source,
+    network,
+    line: formatInviteTrustLine({ onTime, late, hasRecord, blobLink }),
+  };
 }
