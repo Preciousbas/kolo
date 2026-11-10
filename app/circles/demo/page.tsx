@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { KoloLogo } from "@/components/kolo-logo";
-import { readCircle } from "@/lib/circle";
+import { readCircle, type CircleView } from "@/lib/circle";
 import {
   demoNameByAddress,
   readSavedDemoState,
@@ -11,14 +11,17 @@ import { getPackageId, tatumApiKey } from "@/lib/config";
 import {
   getCircleEvents,
   hasLiveTatumEnv,
-  readFeedCursor,
   type KoloEvent,
 } from "@/lib/feed";
 import { getMemberTrust, type MemberTrust } from "@/lib/member-trust";
+import { computeRoundPot } from "@/lib/pot";
 import { toNaira } from "@/lib/price";
+import { latestCheckpoint } from "@/lib/tatum";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 15;
+export const revalidate = 45;
+
+const SOURCE_TIMEOUT_MS = 3_000;
 
 function moneyUsd(n: number) {
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -28,26 +31,37 @@ function moneyNgn(n: number) {
   return `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function FeedFreshness(props: {
-  via: string | null;
-  checkpoint: string | null;
-  updatedAt: string | null;
-  live: boolean;
-}) {
-  const ageMs = props.updatedAt ? Date.now() - Date.parse(props.updatedAt) : null;
-  const ageLabel =
-    ageMs === null || !Number.isFinite(ageMs)
-      ? "unknown"
-      : ageMs < 60_000
-        ? `${Math.max(0, Math.round(ageMs / 1000))}s ago`
-        : `${Math.round(ageMs / 60_000)}m ago`;
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timeout`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
+function ageLabel(fromMs: number | null): string {
+  if (fromMs === null || !Number.isFinite(fromMs)) return "unknown";
+  const ageMs = Date.now() - fromMs;
+  if (!Number.isFinite(ageMs) || ageMs < 0) return "unknown";
+  if (ageMs < 60_000) return `${Math.max(0, Math.round(ageMs / 1000))}s ago`;
+  return `${Math.round(ageMs / 60_000)}m ago`;
+}
+
+function FeedFreshness(props: { live: boolean; lastActivityMs: number | null }) {
   return (
     <p className="mt-4 rounded-2xl border border-border bg-secondary/60 px-4 py-3 text-small text-muted-foreground">
-      {props.live ? "Live from Tatum" : "Saved demo state"}
-      {props.via ? ` · via=${props.via}` : ""}
-      {props.checkpoint ? ` · checkpoint ${props.checkpoint}` : ""}
-      {` · feed ${ageLabel}`}
+      {props.live ? "Live from Tatum" : "Saved state"}
+      {props.lastActivityMs !== null
+        ? ` · last circle activity ${ageLabel(props.lastActivityMs)}`
+        : ""}
     </p>
   );
 }
@@ -55,48 +69,99 @@ function FeedFreshness(props: {
 export default async function DemoCirclePage() {
   const saved = readSavedDemoState();
   const circleId = resolveDemoCircleId();
-  let view = savedStateAsCircleView(saved);
+  const packageId = getPackageId() || saved.packageId || undefined;
+  const names = demoNameByAddress(saved);
+
+  let view: CircleView = savedStateAsCircleView(saved);
   let showingSaved = true;
   let events: KoloEvent[] = [];
-  let feedVia: string | null = null;
-  let potNgn: number | null = null;
-  let priceNote: string | undefined;
+  let tatumLive = false;
 
   if (circleId && hasLiveTatumEnv() && tatumApiKey()) {
-    try {
-      view = await readCircle({
-        id: circleId,
-        packageId: getPackageId() || saved.packageId || undefined,
-        nameByAddress: demoNameByAddress(saved),
-      });
+    const [circleResult, feedResult, healthResult] = await Promise.all([
+      withTimeout(
+        readCircle({ id: circleId, packageId, nameByAddress: names }),
+        SOURCE_TIMEOUT_MS,
+        "circle",
+      ).then(
+        (v) => ({ ok: true as const, value: v }),
+        () => ({ ok: false as const, value: null }),
+      ),
+      withTimeout(
+        getCircleEvents(circleId, {
+          packageId,
+          coinType: saved.coinType || undefined,
+        }),
+        SOURCE_TIMEOUT_MS,
+        "feed",
+      ).then(
+        (v) => ({ ok: true as const, value: v }),
+        () => ({ ok: false as const, value: null }),
+      ),
+      withTimeout(latestCheckpoint(), SOURCE_TIMEOUT_MS, "health").then(
+        () => true,
+        () => false,
+      ),
+    ]);
+
+    tatumLive = healthResult === true;
+
+    if (circleResult.ok && circleResult.value) {
+      view = circleResult.value;
       showingSaved = view.via === "saved";
-      const feed = await getCircleEvents(circleId, {
-        packageId: getPackageId() || saved.packageId || undefined,
-        coinType: saved.coinType || undefined,
-      });
-      events = feed.events.filter((e) => e.kind === "contributed" || e.kind === "paid_out");
-      feedVia = feed.via;
-    } catch {
+    } else {
       view = savedStateAsCircleView(saved);
       showingSaved = true;
     }
+
+    if (feedResult.ok && feedResult.value) {
+      events = feedResult.value.events.filter(
+        (e) => e.kind === "contributed" || e.kind === "paid_out",
+      );
+    }
+
+    // Live banner only when the health/checkpoint call succeeds now.
+    if (!tatumLive) showingSaved = true;
   }
 
+  const roundPot = computeRoundPot({
+    paid: view.paid,
+    contributionUsd: view.amountUsd,
+    round: view.round,
+    events: events.map((e) => ({
+      kind: e.kind,
+      round: e.round,
+      amountRaw: e.amountRaw,
+    })),
+  });
+
+  let potNgn: number | null = null;
   try {
-    const priced = await toNaira(view.potUsd);
+    const priced = await toNaira(roundPot.potUsd);
     potNgn = priced.amountNgn;
-    priceNote = priced.note;
   } catch {
     potNgn = null;
-    priceNote = "naira price unavailable";
   }
 
-  const cursor = readFeedCursor();
-  const paidCount = view.paid.filter(Boolean).length;
+  const paidCount = roundPot.paidCount;
   const recipientName =
     view.members.find((m) => m.address === view.recipient)?.name ||
     saved.recipientName ||
     view.recipient;
+
+  const lastActivityMs = (() => {
+    const times = events.map((e) => e.timestampMs).filter((t) => t > 0);
+    if (times.length === 0) {
+      const fromPayouts = view.payouts
+        .map((p) => (p.paidAt ? Date.parse(p.paidAt) : 0))
+        .filter((t) => t > 0);
+      if (fromPayouts.length === 0) {
+        return saved.updatedAt ? Date.parse(saved.updatedAt) : null;
+      }
+      return Math.max(...fromPayouts);
+    }
+    return Math.max(...times);
+  })();
 
   const paymentList =
     events.length > 0
@@ -117,10 +182,14 @@ export default async function DemoCirclePage() {
       view.members.map(async (m) => {
         if (!m.address || m.address.startsWith("member-")) return;
         try {
-          trustByAddress[m.address] = await getMemberTrust(circleId, m.address, {
-            memberLabel: m.name || "Member",
-            packageId: getPackageId() || saved.packageId || undefined,
-          });
+          trustByAddress[m.address] = await withTimeout(
+            getMemberTrust(circleId, m.address, {
+              memberLabel: m.name || "Member",
+              packageId,
+            }),
+            SOURCE_TIMEOUT_MS,
+            "memory",
+          );
         } catch {
           // panel falls back to empty
         }
@@ -147,14 +216,9 @@ export default async function DemoCirclePage() {
         Round {view.round} of {view.rounds}
       </p>
 
-      <FeedFreshness
-        live={!showingSaved}
-        via={feedVia || (showingSaved ? null : String(view.via))}
-        checkpoint={cursor.lastCheckpoint}
-        updatedAt={cursor.updatedAt || saved.updatedAt}
-      />
+      <FeedFreshness live={tatumLive && !showingSaved} lastActivityMs={lastActivityMs} />
 
-      {showingSaved ? (
+      {showingSaved || !tatumLive ? (
         <p className="mt-4 rounded-2xl bg-secondary px-4 py-3 text-small text-muted-foreground">
           showing saved state
         </p>
@@ -165,21 +229,21 @@ export default async function DemoCirclePage() {
           Pot this round
         </p>
         <p className="mt-2 text-display font-extrabold tabular-nums">
-          {moneyUsd(view.potUsd)}
+          {moneyUsd(roundPot.potUsd)}
           <span className="ml-2 text-body font-medium text-muted-foreground">
-            of {moneyUsd(view.amountUsd * view.rounds)}
+            of {moneyUsd(roundPot.targetUsd)}
           </span>
         </p>
-        <p className="mt-2 text-small tabular-nums text-muted-foreground">
-          {potNgn !== null ? moneyNgn(potNgn) : priceNote || "naira price unavailable"}
-        </p>
+        {potNgn !== null ? (
+          <p className="mt-2 text-small tabular-nums text-muted-foreground">{moneyNgn(potNgn)}</p>
+        ) : null}
         <p className="mt-2 text-small text-muted-foreground">
-          {paidCount} of {view.rounds} paid · Goes to {recipientName}
+          {paidCount} of {roundPot.memberCount} paid · Goes to {recipientName}
         </p>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
           <div
             className="h-full rounded-full bg-primary transition-all"
-            style={{ width: `${(paidCount / Math.max(view.rounds, 1)) * 100}%` }}
+            style={{ width: `${(paidCount / Math.max(roundPot.memberCount, 1)) * 100}%` }}
           />
         </div>
       </section>
