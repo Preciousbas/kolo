@@ -36,10 +36,12 @@ describe("feed parser", () => {
     expect(contrib.events).toHaveLength(2);
     expect(contrib.nextCursor).toBe("cursor-contrib-1");
     expect(contrib.events[0].kind).toBe("contributed");
+    expect(contrib.events[0].round).toBe(1);
     expect(contrib.events[1].roundComplete).toBe(true);
 
     expect(paid.events).toHaveLength(1);
     expect(paid.events[0].kind).toBe("paid_out");
+    expect(paid.events[0].round).toBe(1);
     expect(paid.events[0].member).toContain("0xa111");
     expect(paid.events[0].auto).toBe(true);
   });

@@ -14,7 +14,8 @@ function savedEvents(): KoloEvent[] {
     out.push({
       kind: "paid_out",
       circleId: saved.circleId || "saved",
-      round: Math.max(0, p.round - 1),
+      // Demo payouts are 1-indexed (rounds 1/2), matching UI + memory text.
+      round: p.round,
       member: p.recipient,
       amountRaw: String(Math.round(p.amountUsd * 1_000_000)),
       coinType: saved.coinType,
@@ -24,7 +25,7 @@ function savedEvents(): KoloEvent[] {
       checkpoint: null,
       timestampMs: p.paidAt ? Date.parse(p.paidAt) : 0,
       explorerUrl: p.txRef ? `https://suiscan.xyz/testnet/tx/${p.txRef}` : "",
-      via: "graphql",
+      via: "saved",
     });
   }
   return out;

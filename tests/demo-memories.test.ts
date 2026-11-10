@@ -42,6 +42,8 @@ describe("memory:demo guards", () => {
       {
         KOLO_NETWORK: "testnet",
         KOLO_MEMORY_NETWORK: "mainnet",
+        // Stub empty so dotenv/.env.local cannot unlock mainnet memory.
+        KOLO_ALLOW_MAINNET_MEMORY: "",
         KOLO_MEMORY_MOCK: "1",
       },
       ["--write"],

@@ -180,7 +180,8 @@ function parseGqlNode(
     return {
       kind,
       circleId,
-      round: Number(json.round ?? 0),
+      // Move emits 0-indexed rounds; Kolo UI/memory use 1-indexed (round 1/2…).
+      round: Number(json.round ?? 0) + 1,
       member: String(json.member ?? ""),
       amountRaw: String(json.amount ?? "0"),
       coinType,
@@ -197,7 +198,8 @@ function parseGqlNode(
   return {
     kind: "paid_out",
     circleId,
-    round: Number(json.round ?? 0),
+    // Move emits 0-indexed rounds; Kolo UI/memory use 1-indexed (round 1/2…).
+    round: Number(json.round ?? 0) + 1,
     member: String(json.to ?? ""),
     amountRaw: String(json.amount ?? "0"),
     coinType,
@@ -373,7 +375,8 @@ export async function getCircleState(
         .map((e) => ({
           circle: e.circleId,
           to: e.member,
-          round: e.round,
+          // PaidOutEvent stays 0-indexed; parsePaidOutEvents adds +1 for display.
+          round: Math.max(0, e.round - 1),
           amount: Number(e.amountRaw),
           auto: Boolean(e.auto),
           timestampMs: String(e.timestampMs),

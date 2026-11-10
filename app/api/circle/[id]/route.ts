@@ -1,3 +1,4 @@
+import { isDemoCircleId } from "@/lib/circle-access";
 import { readCircle } from "@/lib/circle";
 import {
   demoNameByAddress,
@@ -15,12 +16,20 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+  if (!isDemoCircleId(id)) {
+    return new Response(JSON.stringify({ error: "not found" }), {
+      status: 404,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const saved = readSavedDemoState();
   const names = demoNameByAddress(saved);
+  const circleId = saved.circleId || id;
 
   try {
     const view = await readCircle({
-      id,
+      id: circleId,
       packageId: getPackageId() || saved.packageId || undefined,
       nameByAddress: names,
     });
@@ -40,7 +49,7 @@ export async function GET(
     const body = JSON.stringify({
       ...fallback,
       name: saved.name,
-      id: id || fallback.id,
+      id: circleId || fallback.id,
     });
     return new Response(redact(body), {
       status: 200,
