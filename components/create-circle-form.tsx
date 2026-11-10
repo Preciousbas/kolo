@@ -25,8 +25,6 @@ export function CreateCircleForm({
   const [members, setMembers] = useState(6);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const yearlyPayouts = 12 / members;
-
   async function onCreate() {
     setError(null);
     if (!packageId) {
@@ -108,7 +106,7 @@ export function CreateCircleForm({
           </div>
         </div>
         <p className="text-small text-muted-foreground">
-          Rounds are monthly. A {members}-member circle gives each member {yearlyPayouts === 2 ? "2 payouts a year" : `${yearlyPayouts} payouts a year`}.
+          One cycle of {members} monthly rounds — each member gets one payout. Monthly only.
         </p>
         {error ? <p className="text-small text-destructive">{error}</p> : null}
       </div>
