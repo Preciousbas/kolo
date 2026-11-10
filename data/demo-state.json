@@ -1,6 +1,6 @@
 {
-  "circleId": "",
-  "packageId": "",
+  "circleId": "0x8226d4e54b95a56f5b8b43cc5abbe40fcd42119e425bd45289b568f2af5eeb6b",
+  "packageId": "0x0a6110f7434f3b0db482cc8e9b4379a2be70cbe39a88273516d56310101484d5",
   "name": "Balogun Street Ajo",
   "network": "testnet",
   "coinType": "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC",
@@ -11,14 +11,45 @@
   "memberCount": 6,
   "recipientName": "Bisi",
   "members": [
-    { "name": "Ada", "address": "", "index": 0 },
-    { "name": "Emeka", "address": "", "index": 1 },
-    { "name": "Bisi", "address": "", "index": 2 },
-    { "name": "Ngozi (You)", "address": "", "index": 3 },
-    { "name": "Femi", "address": "", "index": 4 },
-    { "name": "Tunde", "address": "", "index": 5 }
+    {
+      "name": "Ada",
+      "index": 0,
+      "address": "0x913d3fb5a8fed297d69867291f7d83d13cd96e1d9b15c889f017626518e1de14"
+    },
+    {
+      "name": "Emeka",
+      "index": 1,
+      "address": "0xedce4e41ea44f71ca80a090bc04a3a7d1874e18f1f4a8484709afa5e0c619944"
+    },
+    {
+      "name": "Bisi",
+      "index": 2,
+      "address": "0x728e5fe37483c13a17a99147058d993a21f50f4ae27598716508eb95781a1de6"
+    },
+    {
+      "name": "Ngozi (You)",
+      "index": 3,
+      "address": "0x2fb1d3df3986fde38da85b50a183715e294103728381c5a5259024264cc6a0b9"
+    },
+    {
+      "name": "Femi",
+      "index": 4,
+      "address": "0x76324bfd1c5182e3cf855d335d1e4aa96ec234fc4e4bf3b4553bd6a65562af10"
+    },
+    {
+      "name": "Tunde",
+      "index": 5,
+      "address": "0xe5f3b999f01f4f4417e064edcf7cf6b9057b3dc7c287f4902bd344e1299649ec"
+    }
   ],
-  "paidThisRound": [true, true, true, true, false, false],
+  "paidThisRound": [
+    true,
+    true,
+    true,
+    true,
+    false,
+    false
+  ],
   "payouts": [
     {
       "round": 1,
@@ -26,7 +57,7 @@
       "amountUsd": 120,
       "amountNgn": null,
       "paidAt": null,
-      "txRef": "",
+      "txRef": "3c1eFQQfv8abHp9PmFSrRWT8cvtoHs6xHjt7GBUwPJie",
       "mode": "auto"
     },
     {
@@ -35,11 +66,29 @@
       "amountUsd": 120,
       "amountNgn": null,
       "paidAt": null,
-      "txRef": "",
+      "txRef": "6t5rQWiZV236JsBqMaYsa9Uw27AkpdUTsh7m23Hw3761",
       "mode": "auto"
     }
   ],
-  "digests": [],
-  "updatedAt": null,
-  "note": "Placeholder until npm run seed:demo writes a live circle ID."
+  "digests": [
+    "4G1HpS7DofMaYY5dusaw1nQehFccJT9aWVx4Ta7qQ3Xr",
+    "7Z2DcqZq2JzitQ96yg8UjfJA7RZMZvCVhbbFRKgnotR",
+    "8fsSKfDDWozGT4oWkrjcjHUEvKEsRd2u6fDhvrg39pot",
+    "BJsAeCwJ6AgjRQMpnPENjTbrWspWRNUD3BLGHdZ1ny4f",
+    "4u7VP9weo4eWbUkfn4xTpT3XrE44UY3G31HXZZRfSKrb",
+    "3c1eFQQfv8abHp9PmFSrRWT8cvtoHs6xHjt7GBUwPJie",
+    "6ZBCgWZrUH3Xm6Kfu1x7r8XER6SPsKcaDsuA7fFB3zNA",
+    "93NVYMgD1u7tnWsqHFUKmQGHA8KJaez7XcmAqC89oQxp",
+    "7XYTWrkzsCTmXveNFMNGsuErVTk8U2iQhVZRzn1kwcGp",
+    "4X35zb1BTeEWVYhYibhAuu6KUjbY6hm271nNT5qzjfXB",
+    "DbPTyP78QEMMpMith3J9LhtkckSetggNgNsJNuDV6Zww",
+    "6t5rQWiZV236JsBqMaYsa9Uw27AkpdUTsh7m23Hw3761",
+    "5akz5uiG9XDKSyBoPhXaUTjSD9zp1CtAvoRBkJsZRtCq",
+    "3zmE7U1a5CnzDq1QZWeCaPdhJ2gJLEwt8tmbaD4zYfRa",
+    "FCMHgdKUugr8JtQG6Fo4KhjK9fd892dgNirGeai58t54",
+    "GDAkUfSM1wLHKkXPUBH48cqYFLWjnk6hkmVX9kqs5K73",
+    "EfTw6BnGLmiJXYKJYQqkWwM8QWg9JcnQ3f6gAodxKQkC"
+  ],
+  "updatedAt": "2026-11-10T12:20:46.176Z",
+  "note": "Default demo: round 3, 4 of 6 paid, recipient Bisi."
 }
