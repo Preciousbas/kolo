@@ -1,0 +1,45 @@
+{
+  "circleId": "",
+  "packageId": "",
+  "name": "Balogun Street Ajo",
+  "network": "testnet",
+  "coinType": "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC",
+  "contributionUsd": 20,
+  "autoPayout": true,
+  "round": 3,
+  "paidCount": 4,
+  "memberCount": 6,
+  "recipientName": "Bisi",
+  "members": [
+    { "name": "Ada", "address": "", "index": 0 },
+    { "name": "Emeka", "address": "", "index": 1 },
+    { "name": "Bisi", "address": "", "index": 2 },
+    { "name": "Ngozi (You)", "address": "", "index": 3 },
+    { "name": "Femi", "address": "", "index": 4 },
+    { "name": "Tunde", "address": "", "index": 5 }
+  ],
+  "paidThisRound": [true, true, true, true, false, false],
+  "payouts": [
+    {
+      "round": 1,
+      "recipient": "Ada",
+      "amountUsd": 120,
+      "amountNgn": null,
+      "paidAt": null,
+      "txRef": "",
+      "mode": "auto"
+    },
+    {
+      "round": 2,
+      "recipient": "Emeka",
+      "amountUsd": 120,
+      "amountNgn": null,
+      "paidAt": null,
+      "txRef": "",
+      "mode": "auto"
+    }
+  ],
+  "digests": [],
+  "updatedAt": null,
+  "note": "Placeholder until npm run seed:demo writes a live circle ID."
+}

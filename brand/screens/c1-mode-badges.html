@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>Kolo · ModeBadge variants</title>
+<link rel="stylesheet" href="../brand/tokens/kolo-tokens.css">
+<script src="vendor/tailwind.js"></script><!-- prod: https://cdn.tailwindcss.com -->
+<script src="../brand/tokens/tailwind.kolo.js"></script>
+<script src="vendor/lucide.min.js"></script>
+<style>body{margin:0;background:#d9cfc0} .phone{width:390px;height:470px;overflow:hidden;position:relative}
+.chip-before{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:hsl(var(--muted-foreground)/.6)}
+.no-scrollbar::-webkit-scrollbar{display:none}</style></head>
+<body><div class="phone bg-background text-foreground font-sans"><div class="p-5 space-y-4"><div class="text-micro uppercase text-muted-foreground">ModeBadge · one component, two variants</div>
+<div><div class="text-small font-bold mb-1">variant="test"</div><div class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-warning/60 bg-warning-soft text-warning px-3 py-1 text-[12px] font-bold "><i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>Test mode · not real money</div><p class="text-small text-muted-foreground mt-1">In use now: every wallet, add-money and withdraw screen (06a–07e).</p></div>
+<div><div class="text-small font-bold mb-1">variant="sandbox" · later, for a real ramp partner</div><div class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-warning/60 bg-warning-soft text-warning px-3 py-1 text-[12px] font-bold "><i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>Sandbox · simulated, no real naira moves</div><p class="text-small text-muted-foreground mt-1">Not used on current screens. Reserved for when a real partner's sandbox is wired in.</p></div>
+<div><div class="text-small font-bold mb-1">Later, if both apply (test chain + real-partner sandbox)</div><div class="flex flex-col items-start gap-1.5"><div class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-warning/60 bg-warning-soft text-warning px-3 py-1 text-[12px] font-bold "><i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>Test mode · not real money</div><div class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-warning/60 bg-warning-soft text-warning px-3 py-1 text-[12px] font-bold "><i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>Sandbox · simulated, no real naira moves</div></div><p class="text-small text-muted-foreground mt-1">Stack them, test first. Never merge them into one string.</p></div></div></div><script>lucide.createIcons({attrs:{'stroke-width':2.2}})</script></body></html>

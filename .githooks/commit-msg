@@ -1,0 +1,7 @@
+#!/bin/sh
+# Reject agent attribution trailers. Do not strip them silently.
+if [ -f "$1" ] && grep -iE 'co-authored-by|made[- ]with|cursoragent' "$1" >/dev/null; then
+  echo "commit message rejected: attribution trailer" >&2
+  exit 1
+fi
+exit 0

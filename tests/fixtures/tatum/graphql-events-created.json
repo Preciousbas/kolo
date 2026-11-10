@@ -1,0 +1,27 @@
+{
+  "data": {
+    "events": {
+      "pageInfo": { "hasNextPage": false, "endCursor": null },
+      "nodes": [
+        {
+          "timestamp": "2026-11-01T10:00:00.000Z",
+          "contents": {
+            "json": {
+              "circle": "0xcirclefixture000000000000000000000000000000000000000000000000001",
+              "members": [
+                "0xa111111111111111111111111111111111111111111111111111111111111111",
+                "0xb222222222222222222222222222222222222222222222222222222222222222"
+              ],
+              "amount": "20000000",
+              "auto_payout": true
+            }
+          },
+          "transaction": {
+            "digest": "DigestCreated111",
+            "effects": { "checkpoint": { "sequenceNumber": 100 } }
+          }
+        }
+      ]
+    }
+  }
+}

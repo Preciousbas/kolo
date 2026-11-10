@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check:secrets
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: build with no secrets
+        run: npm run build
+        env:
+          KOLO_NETWORK: ""
+          KOLO_ALLOW_MAINNET: ""
+          TATUM_API_KEY: ""
+          TATUM_ID: ""
+          MEMWAL_PRIVATE_KEY: ""
+          MEMWAL_ACCOUNT_ID: ""
+          MEMWAL_AGENT_ID: ""
+          MEMWAL_SERVER_URL: ""
+          MEMWAL_NAMESPACE: ""
+          KOLO_MEMORY_MOCK: ""
+          NEXT_PUBLIC_KOLO_NETWORK: ""
+          KOLO_PACKAGE_ID: ""
+          SUI_ADDRESS: ""
+          KOLO_COIN_TYPE: ""
+          KOLO_DEMO_CIRCLE_ID: ""
+          KOLO_WALLET0_ADDRESS: ""
+          KOLO_SEED_MNEMONIC: ""
+          CRON_SECRET: ""
+          LLM_API_KEY: ""
+
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Sui CLI
+        run: |
+          set -euo pipefail
+          # UNCONFIRMED: asset filename. The testnet-v1.82.2 release lists this ubuntu x86_64 archive.
+          asset="sui-testnet-v1.82.2-ubuntu-x86_64.tgz"
+          url="https://github.com/MystenLabs/sui/releases/download/testnet-v1.82.2/${asset}"
+          curl -fsSL -o /tmp/sui.tgz "$url"
+          mkdir -p /tmp/sui-cli
+          tar -xzf /tmp/sui.tgz -C /tmp/sui-cli
+          bin="$(find /tmp/sui-cli -type f -name sui | head -n 1)"
+          test -n "$bin"
+          sudo install -m 755 "$bin" /usr/local/bin/sui
+          sui --version
+      - name: Move tests
+        working-directory: move
+        run: sui move test

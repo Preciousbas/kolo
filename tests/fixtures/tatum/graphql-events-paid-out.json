@@ -1,0 +1,25 @@
+{
+  "data": {
+    "events": {
+      "pageInfo": { "hasNextPage": false, "endCursor": null },
+      "nodes": [
+        {
+          "timestamp": "2026-11-01T10:02:01.000Z",
+          "contents": {
+            "json": {
+              "circle": "0xcirclefixture000000000000000000000000000000000000000000000000001",
+              "to": "0xa111111111111111111111111111111111111111111111111111111111111111",
+              "round": "0",
+              "amount": "40000000",
+              "auto": true
+            }
+          },
+          "transaction": {
+            "digest": "DigestPaidOut1",
+            "effects": { "checkpoint": { "sequenceNumber": 102 } }
+          }
+        }
+      ]
+    }
+  }
+}

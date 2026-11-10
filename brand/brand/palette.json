@@ -1,0 +1,145 @@
+{
+ "palette": {
+  "bg": "#FBF6EE",
+  "surface": "#FFFFFF",
+  "surface-2": "#F4ECDF",
+  "ink": "#2A1F17",
+  "muted": "#6E5F50",
+  "border": "#E6D9C6",
+  "primary": "#A9441C",
+  "primary-foreground": "#FFFFFF",
+  "primary-soft": "#F7E3D6",
+  "accent": "#2B4A7A",
+  "accent-foreground": "#FFFFFF",
+  "accent-soft": "#E4EAF4",
+  "success": "#2E7048",
+  "success-soft": "#E2F0E6",
+  "warning": "#9A5B00",
+  "warning-soft": "#FBEBCF",
+  "danger": "#B3261E",
+  "danger-soft": "#FBE3E0",
+  "gold": "#E2A93B"
+ },
+ "contrast": [
+  [
+   "ink",
+   "bg",
+   14.94,
+   "AA"
+  ],
+  [
+   "ink",
+   "surface",
+   16.07,
+   "AA"
+  ],
+  [
+   "muted",
+   "bg",
+   5.71,
+   "AA"
+  ],
+  [
+   "muted",
+   "surface",
+   6.15,
+   "AA"
+  ],
+  [
+   "muted",
+   "surface-2",
+   5.24,
+   "AA"
+  ],
+  [
+   "primary-foreground",
+   "primary",
+   5.95,
+   "AA"
+  ],
+  [
+   "primary",
+   "bg",
+   5.53,
+   "AA"
+  ],
+  [
+   "primary",
+   "surface",
+   5.95,
+   "AA"
+  ],
+  [
+   "primary",
+   "primary-soft",
+   4.79,
+   "AA"
+  ],
+  [
+   "accent-foreground",
+   "accent",
+   8.89,
+   "AA"
+  ],
+  [
+   "accent",
+   "accent-soft",
+   7.35,
+   "AA"
+  ],
+  [
+   "accent",
+   "surface",
+   8.89,
+   "AA"
+  ],
+  [
+   "success",
+   "surface",
+   5.95,
+   "AA"
+  ],
+  [
+   "success",
+   "success-soft",
+   5.06,
+   "AA"
+  ],
+  [
+   "warning",
+   "surface",
+   5.43,
+   "AA"
+  ],
+  [
+   "warning",
+   "warning-soft",
+   4.62,
+   "AA"
+  ],
+  [
+   "danger",
+   "surface",
+   6.54,
+   "AA"
+  ],
+  [
+   "danger",
+   "danger-soft",
+   5.34,
+   "AA"
+  ],
+  [
+   "ink",
+   "gold",
+   7.63,
+   "AA"
+  ],
+  [
+   "ink",
+   "surface-2",
+   13.71,
+   "AA"
+  ]
+ ]
+}

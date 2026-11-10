@@ -1,0 +1,10 @@
+[package]
+name = "kolo_circle"
+# testnet-v1.82.2 example packages use 2024.beta. Plain "2024" is not the edition string in that CLI.
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.82.2" }
+
+[addresses]
+kolo_circle = "0x0"

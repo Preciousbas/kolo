@@ -1,0 +1,13 @@
+{
+  "name": "Balogun Street Ajo",
+  "contributionUsd": 20,
+  "autoPayout": true,
+  "members": [
+    { "name": "Ada", "index": 0 },
+    { "name": "Emeka", "index": 1 },
+    { "name": "Bisi", "index": 2 },
+    { "name": "Ngozi (You)", "index": 3 },
+    { "name": "Femi", "index": 4 },
+    { "name": "Tunde", "index": 5 }
+  ]
+}
