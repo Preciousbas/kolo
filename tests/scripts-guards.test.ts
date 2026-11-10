@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, "..");
 
 function runScript(
   script: "seed:demo" | "reset:demo",
-  env: NodeJS.ProcessEnv,
+  env: Record<string, string | undefined>,
   args: string[] = [],
 ) {
   return spawnSync("npm", ["run", script, "--", ...args], {
@@ -15,15 +15,19 @@ function runScript(
       PATH: process.env.PATH,
       HOME: process.env.HOME,
       ...env,
-    },
+    } as unknown as NodeJS.ProcessEnv,
     encoding: "utf8",
   });
 }
 
 describe("seed and reset guards", () => {
   it("refuses with missing env and prints only env names", () => {
+    // Explicit empty stubs so dotenv/.env.local cannot refill real local values.
     const result = runScript("seed:demo", {
       KOLO_NETWORK: "testnet",
+      KOLO_PACKAGE_ID: "",
+      KOLO_SEED_MNEMONIC: "",
+      KOLO_DEMO_CIRCLE_ID: "",
     });
     expect(result.status).toBe(1);
     const out = `${result.stdout}\n${result.stderr}`;

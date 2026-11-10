@@ -75,11 +75,15 @@ describe("transaction builder", () => {
 
   it("targets packageId::circle::contribute with the coin type argument", () => {
     saveEnv();
-    process.env.KOLO_PACKAGE_ID = "0xpackagetest";
+    // Sui Transaction validates package/object ids as hex addresses.
+    const packageId = `0x${"ab".repeat(32)}`;
+    const circleId = `0x${"cd".repeat(32)}`;
+    const coinId = `0x${"ef".repeat(32)}`;
+    process.env.KOLO_PACKAGE_ID = packageId;
     const tx = buildContributeTx({
-      circleId: "0xcircle",
-      coinId: "0xcoin",
-      packageId: "0xpackagetest",
+      circleId,
+      coinId,
+      packageId,
       coinType:
         "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC",
     });
@@ -87,7 +91,7 @@ describe("transaction builder", () => {
     const moveCall = data.commands.find((c) => c.$kind === "MoveCall");
     expect(moveCall?.$kind).toBe("MoveCall");
     if (moveCall?.$kind !== "MoveCall") throw new Error("expected MoveCall");
-    expect(moveCall.MoveCall.package).toBe("0xpackagetest");
+    expect(moveCall.MoveCall.package).toBe(packageId);
     expect(moveCall.MoveCall.module).toBe("circle");
     expect(moveCall.MoveCall.function).toBe("contribute");
     expect(moveCall.MoveCall.typeArguments).toEqual([
@@ -103,36 +107,49 @@ describe("read fallback", () => {
     vi.resetModules();
   });
 
-  it("uses fullnode when tatum fails, then saved state when both fail", async () => {
+  it("uses graphql when grpc fails, then saved state when both fail", async () => {
+    // Root cause of prior failure: test mocked @mysten/sui/jsonRpc "fullnode",
+    // but readCircle now falls back grpc → graphql (no jsonRpc path).
     saveEnv();
-    process.env.KOLO_PACKAGE_ID = "0xpackage";
+    process.env.KOLO_PACKAGE_ID = `0x${"aa".repeat(32)}`;
     delete process.env.TATUM_API_KEY;
 
-    vi.doMock("../lib/tatum", () => ({
-      rpc: vi.fn().mockRejectedValue(new Error("tatum down")),
-    }));
+    const fixtureId = "0xcirclefixture000000000000000000000000000000000000000000000000001";
+    const getObject = vi.fn(async (input: { objectId: string }) => {
+      if (input.objectId === fixtureId) return circleObject;
+      throw new Error("missing object");
+    });
+    const listEvents = vi.fn().mockResolvedValue({ events: [] });
 
-    const fullnodeGetObject = vi.fn().mockResolvedValue(circleObject);
-    const fullnodeQueryEvents = vi.fn().mockResolvedValue({ data: [] });
-    vi.doMock("@mysten/sui/jsonRpc", () => ({
-      getJsonRpcFullnodeUrl: () => "https://fullnode.testnet.sui.io",
-      SuiJsonRpcClient: class {
-        getObject = fullnodeGetObject;
-        queryEvents = fullnodeQueryEvents;
+    vi.resetModules();
+    vi.doMock("../lib/sui-client", () => ({
+      getGrpcClient: vi.fn().mockRejectedValue(new Error("grpc down")),
+      getGraphqlClient: vi.fn().mockResolvedValue({
+        client: { getObject, listEvents },
+        via: "graphql",
+      }),
+      createPublicGraphql: () => ({ getObject, listEvents }),
+      createTatumGraphql: () => {
+        throw new Error("no tatum");
       },
+      createPublicGrpc: () => {
+        throw new Error("grpc down");
+      },
+      createTatumGrpc: () => {
+        throw new Error("no tatum");
+      },
+      unwrapTx: (x: unknown) => x,
     }));
 
     const { readCircle } = await import("../lib/circle");
-    const view = await readCircle({
-      id: "0xcirclefixture000000000000000000000000000000000000000000000000001",
-    });
-    expect(view.via).toBe("fullnode");
-    expect(fullnodeGetObject).toHaveBeenCalled();
+    const view = await readCircle({ id: fixtureId });
+    expect(view.via).toBe("graphql");
+    expect(getObject).toHaveBeenCalled();
 
-    fullnodeGetObject.mockRejectedValueOnce(new Error("fullnode down"));
+    getObject.mockRejectedValue(new Error("graphql down"));
     const { savedStateAsCircleView, readSavedDemoState } = await import("../lib/demo-state");
     try {
-      await readCircle({ id: "0xmissing" });
+      await readCircle({ id: `0x${"11".repeat(32)}` });
       expect.fail("expected throw");
     } catch {
       const saved = savedStateAsCircleView(readSavedDemoState());
