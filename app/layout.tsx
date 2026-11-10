@@ -1,15 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import "@fontsource/plus-jakarta-sans/500.css";
+import "@fontsource/plus-jakarta-sans/600.css";
+import "@fontsource/plus-jakarta-sans/700.css";
+import "@fontsource/plus-jakarta-sans/800.css";
 import "./globals.css";
 import { cn } from "cn";
 import { Providers } from "@/components/providers";
-
-const sans = Plus_Jakarta_Sans({
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -38,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", sans.variable)}>
-      <body className={`${sans.className} antialiased tabular-nums`}>
+    <html lang="en" className={cn("font-sans")}>
+      <body className="font-sans antialiased tabular-nums">
         <Providers>{children}</Providers>
       </body>
     </html>

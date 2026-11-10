@@ -1,5 +1,5 @@
 /* Kolo design tokens: shadcn/ui-compatible HSL channels. Hex in comments. Single source for screens + app. */
-/* Fonts load via next/font in app/layout.tsx (Plus Jakarta Sans). */
+/* Fonts load via @fontsource/plus-jakarta-sans in app/layout.tsx. */
 :root{
   --background: 37 62% 96%; /* #FBF6EE bg */
   --foreground: 25 29% 13%; /* #2A1F17 ink */
