@@ -1,12 +1,26 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
+import { SignInFlow } from "@/components/sign-in-flow";
 import { getStoredCircle, listUserCircleIds } from "@/lib/circle-registry";
-import { requireUser } from "@/lib/require-user";
+import { getProfile } from "@/lib/auth-store";
+import { incompleteProfileRedirect, isProfileComplete } from "@/lib/profile";
+import { getRequestSession } from "@/lib/request-session";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function CirclesPage() {
-  const { session, profile } = await requireUser();
+  const session = await getRequestSession();
+  if (!session) {
+    return (
+      <main className="mx-auto min-h-screen max-w-xl bg-background px-6 py-10">
+        <SignInFlow />
+      </main>
+    );
+  }
+  const profile = await getProfile(session.address);
+  const toProfile = incompleteProfileRedirect(profile);
+  if (toProfile || !isProfileComplete(profile)) redirect("/profile");
   const ids = await listUserCircleIds(session.address);
   const circles = [];
   for (const id of ids) {

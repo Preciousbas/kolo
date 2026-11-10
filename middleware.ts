@@ -21,5 +21,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand|site.webmanifest).*)"],
+  // Let public static assets through (icons, OG/Twitter images, brand, manifest).
+  matcher: [
+    "/((?!_next/static|_next/image|brand|.*\\.(?:ico|png|svg|jpg|jpeg|gif|webp|webmanifest)$).*)",
+  ],
 };
