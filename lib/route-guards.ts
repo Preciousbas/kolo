@@ -2,6 +2,7 @@ export const PUBLIC_PATHS = [
   "/",
   "/terms",
   "/privacy",
+  "/circles",
   "/circles/demo",
   "/auth/callback",
 ];
@@ -10,6 +11,7 @@ export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   if (pathname.startsWith("/join/")) return true;
   if (pathname.startsWith("/brand/") || pathname.startsWith("/_next/")) return true;
+  if (/\.(?:ico|png|svg|jpg|jpeg|gif|webp|webmanifest)$/i.test(pathname)) return true;
   if (pathname.startsWith("/api/auth/challenge")) return true;
   if (pathname.startsWith("/api/auth/verify")) return true;
   if (pathname.startsWith("/api/join/")) return true;

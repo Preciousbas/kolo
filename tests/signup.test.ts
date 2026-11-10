@@ -160,7 +160,9 @@ const completeProfile = {
 describe("route guards", () => {
   it("sends signed-out users to 00", () => {
     expect(isPublicPath("/")).toBe(true);
-    expect(isPublicPath("/circles")).toBe(false);
+    expect(isPublicPath("/circles")).toBe(true);
+    expect(isPublicPath("/og-image.png")).toBe(true);
+    expect(isPublicPath("/icon-192.png")).toBe(true);
     expect(signedOutDestination("/circles")).toBe("/?returnTo=%2Fcircles");
     expect(afterAuthPath({ hasProfile: false, circleCount: 0 })).toBe("/profile");
     expect(afterAuthPath({ hasProfile: true, circleCount: 1 })).toBe("/circles");
