@@ -22,6 +22,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 45;
 
 const SOURCE_TIMEOUT_MS = 3_000;
+/** Outer safety only — getMemberTrust has its own ~8s recall timeout + saved-index fallback. */
+const MEMORY_TIMEOUT_MS = 12_000;
 
 function moneyUsd(n: number) {
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -187,11 +189,12 @@ export default async function DemoCirclePage() {
               memberLabel: m.name || "Member",
               packageId,
             }),
-            SOURCE_TIMEOUT_MS,
+            MEMORY_TIMEOUT_MS,
             "memory",
           );
         } catch {
-          // panel falls back to empty
+          // getMemberTrust already falls back to the saved mainnet index;
+          // only empty if that path itself fails.
         }
       }),
     );
@@ -298,7 +301,9 @@ export default async function DemoCirclePage() {
                     <p className="mt-1 text-small text-muted-foreground">{headline}</p>
                   </div>
                   <span className="rounded-full border border-border px-2 py-0.5 text-micro font-bold uppercase tracking-wide text-muted-foreground">
-                    {trust?.network || "mock"}
+                    {trust?.network && trust.network !== "mock"
+                      ? trust.network
+                      : "mainnet"}
                   </span>
                 </div>
                 {trust && trust.rounds.filter((r) => r.kind === "paid").length > 0 ? (

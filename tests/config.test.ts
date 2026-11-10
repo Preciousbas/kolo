@@ -4,6 +4,7 @@ import {
   isMock,
   memoryMaxPerRun,
   memoryMaxTotal,
+  memoryMockAllowed,
   memoryNetwork,
   memoryRelayerUrl,
   NETWORKS,
@@ -72,12 +73,24 @@ describe("config", () => {
     delete process.env.MEMWAL_PRIVATE_KEY;
     delete process.env.MEMWAL_ACCOUNT_ID;
     delete process.env.KOLO_MEMORY_MOCK;
+    delete process.env.KOLO_MEMORY_NETWORK;
+    expect(memoryMockAllowed()).toBe(true);
     expect(isMock()).toBe(true);
     process.env.MEMWAL_PRIVATE_KEY = "unit-test-secret-value";
     process.env.MEMWAL_ACCOUNT_ID = "account";
     expect(isMock()).toBe(false);
     process.env.KOLO_MEMORY_MOCK = "1";
     expect(isMock()).toBe(true);
+  });
+
+  it("refuses mock when KOLO_MEMORY_NETWORK=mainnet", () => {
+    saveEnv();
+    delete process.env.MEMWAL_PRIVATE_KEY;
+    delete process.env.MEMWAL_ACCOUNT_ID;
+    process.env.KOLO_MEMORY_MOCK = "1";
+    process.env.KOLO_MEMORY_NETWORK = "mainnet";
+    expect(memoryMockAllowed()).toBe(false);
+    expect(isMock()).toBe(false);
   });
 
   it("memory network defaults, caps, and relayer", () => {

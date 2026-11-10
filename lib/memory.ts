@@ -4,6 +4,7 @@ import {
   isMock,
   memwalAccountId,
   memwalPrivateKey,
+  memoryMockAllowed,
   memoryNetwork,
   memoryRelayerUrl,
 } from "./config";
@@ -74,7 +75,11 @@ export async function getMemory(
   namespace: string,
   options?: { mock?: boolean },
 ): Promise<MemoryClient> {
-  const useMock = options?.mock === true || isMock();
+  const wantMock = options?.mock === true || isMock();
+  if (wantMock && !memoryMockAllowed()) {
+    throw new Error("memory mock refused in production/mainnet");
+  }
+  const useMock = wantMock && memoryMockAllowed();
   const net = useMock ? "mock" : memoryNetwork();
   const cacheKey = `${useMock ? "mock" : "real"}:${net}:${namespace}`;
   const cached = cache.get(cacheKey);

@@ -54,7 +54,15 @@ export function getNetworkConfig() {
   return NETWORKS[getNetworkName()];
 }
 
+/** MemWalMock is forbidden in production and when memory is configured for mainnet. */
+export function memoryMockAllowed(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  if (process.env.KOLO_MEMORY_NETWORK === "mainnet") return false;
+  return true;
+}
+
 export function isMock(): boolean {
+  if (!memoryMockAllowed()) return false;
   return (
     !process.env.MEMWAL_PRIVATE_KEY ||
     !process.env.MEMWAL_ACCOUNT_ID ||

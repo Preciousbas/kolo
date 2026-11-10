@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, copyFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { MemoryClient } from "../lib/memory";
 
 let tmp: string;
+const root = path.resolve(__dirname, "..");
 
 describe("getMemberTrust", () => {
   beforeEach(() => {
@@ -14,12 +15,17 @@ describe("getMemberTrust", () => {
     process.env.KOLO_MEMORY_MOCK = "1";
     delete process.env.MEMWAL_PRIVATE_KEY;
     delete process.env.MEMWAL_ACCOUNT_ID;
+    delete process.env.KOLO_MEMORY_NETWORK;
+    delete process.env.KOLO_ALLOW_MAINNET_MEMORY;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.resetModules();
     rmSync(tmp, { recursive: true, force: true });
     delete process.env.KOLO_MEMORY_MOCK;
+    delete process.env.KOLO_MEMORY_NETWORK;
+    delete process.env.KOLO_ALLOW_MAINNET_MEMORY;
   });
 
   it("builds trust from mock recall hits and dedupes digests", async () => {
@@ -69,10 +75,11 @@ describe("getMemberTrust", () => {
     expect(trust.onTime).toBe(1);
     expect(trust.rounds).toHaveLength(1);
     expect(trust.blobIds).toEqual(["blob-1"]);
+    expect(trust.network).not.toBe("mock");
     vi.doUnmock("../lib/memory");
   });
 
-  it("falls back to ledger when recall throws", async () => {
+  it("falls back to ledger when recall throws and saved index is empty", async () => {
     const circleId = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
     const member = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     writeFileSync(
@@ -120,6 +127,62 @@ describe("getMemberTrust", () => {
     expect(trust.source).toBe("ledger");
     expect(trust.late).toBe(1);
     expect(trust.nudge).toMatch(/late once/i);
+    expect(trust.network).not.toBe("mock");
+    vi.doUnmock("../lib/memory");
+  });
+
+  it("falls back to saved mainnet index when recall times out", async () => {
+    process.env.KOLO_MEMORY_NETWORK = "mainnet";
+    process.env.KOLO_ALLOW_MAINNET_MEMORY = "yes";
+    delete process.env.KOLO_MEMORY_MOCK;
+
+    const indexPath = path.join(root, "data/memories.mainnet.json");
+    const index = JSON.parse(readFileSync(indexPath, "utf8")) as {
+      circleId: string;
+      count: number;
+      memories: Array<{ member: string; link: string; blobId: string }>;
+    };
+    copyFileSync(indexPath, path.join(tmp, "data/memories.mainnet.json"));
+
+    vi.doMock("../lib/memory", async () => {
+      const actual = await vi.importActual<typeof import("../lib/memory")>("../lib/memory");
+      return {
+        ...actual,
+        getMemory: async (): Promise<MemoryClient> => ({
+          rememberAndWait: async () => ({
+            id: "1",
+            blob_id: "b",
+            owner: "o",
+            namespace: "n",
+          }),
+          recall: async () =>
+            new Promise(() => {
+              /* hang until timeout */
+            }),
+        }),
+      };
+    });
+
+    const { getMemberTrust } = await import("../lib/member-trust");
+    const members = [...new Set(index.memories.map((m) => m.member))];
+    const trusts = await Promise.all(
+      members.map((member) =>
+        getMemberTrust(index.circleId, member, {
+          memberLabel: "Member",
+          recallTimeoutMs: 40,
+        }),
+      ),
+    );
+
+    const links = trusts.flatMap((t) =>
+      t.rounds.map((r) => r.link).filter((l): l is string => Boolean(l)),
+    );
+    expect(links).toHaveLength(index.count);
+    expect(index.count).toBe(18);
+    expect(links.every((l) => l.includes("walruscan.com/mainnet/blob/"))).toBe(true);
+    expect(trusts.every((t) => t.source === "memory (saved index)")).toBe(true);
+    expect(trusts.every((t) => t.network === "mainnet")).toBe(true);
+    expect(JSON.stringify(trusts).toLowerCase()).not.toMatch(/mock/);
     vi.doUnmock("../lib/memory");
   });
 });

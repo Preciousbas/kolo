@@ -58,7 +58,13 @@ export function getRunWritten(): number {
 
 export function resolveMemoryNetworkLabel(): MemoryNetworkLabel {
   if (isMock()) return "mock";
-  return memoryNetwork();
+  try {
+    return memoryNetwork();
+  } catch {
+    // Prefer the configured label over "mock" when mainnet memory is set but locked.
+    if (process.env.KOLO_MEMORY_NETWORK === "mainnet") return "mainnet";
+    return "testnet";
+  }
 }
 
 export function ledgerPath(network: MemoryNetworkLabel = resolveMemoryNetworkLabel()): string {
