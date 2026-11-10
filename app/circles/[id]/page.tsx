@@ -18,7 +18,10 @@ export default async function CircleDetailPage({
   }
   const { session, profile } = await requireUser();
   const circle = await getStoredCircle(id);
-  if (!circle || !isCircleMember(circle, session.address)) {
+  if (!circle) {
+    notFound();
+  }
+  if (!isCircleMember(circle, session.address)) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16">
         <h1 className="text-h1 font-bold">not your circle</h1>

@@ -12,7 +12,10 @@ const { networkConfig } = createNetworkConfig({
 });
 
 function googleEnabled() {
-  return Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  return (
+    process.env.NEXT_PUBLIC_ENABLE_GOOGLE_SIGNIN === "yes" &&
+    Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+  );
 }
 
 function EnokiRegister() {

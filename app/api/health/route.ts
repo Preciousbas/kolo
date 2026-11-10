@@ -25,8 +25,8 @@ export async function GET() {
     try {
       tatumDetail = await probeTatumInterfaces();
       const found = await latestCheckpoint();
-      tatum =
-        tatumDetail.graphql === "ok" || tatumDetail.grpc === "ok" ? "ok" : "error";
+      // GraphQL is the health signal; gRPC is optional and reported as skipped.
+      tatum = tatumDetail.graphql === "ok" ? "ok" : "error";
       checkpoint = { seq: found.seq, via: found.via };
     } catch {
       tatum = "error";

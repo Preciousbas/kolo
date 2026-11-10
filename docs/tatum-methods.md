@@ -1,9 +1,13 @@
 # Tatum Sui testnet gateway methods
 
-Fetched from `https://sui-testnet.gateway.tatum.io/_methods` and
-`https://sui-testnet-grpc.gateway.tatum.io/_methods` (API key via `x-api-key` header; key not stored here).
+Fetched from Tatum's gateway `_methods` endpoints (API key via `x-api-key` header; key not stored here):
+`https://sui-testnet.gateway.tatum.io/_methods` and
+`https://sui-testnet-grpc.gateway.tatum.io/_methods`.
 
 Also see `https://sui-testnet.gateway.tatum.io/llms.txt`.
+
+Kolo's primary read path is **Tatum GraphQL** at `https://sui-testnet.gateway.tatum.io/graphql`
+(not the public Sui GraphQL host). `/api/health` reports GraphQL status and marks gRPC as optional/`skipped`.
 
 ## HTTP gateway (`sui-testnet.gateway.tatum.io`)
 
@@ -19,7 +23,7 @@ Also see `https://sui-testnet.gateway.tatum.io/llms.txt`.
 
 JSON-RPC on this host returns HTTP 404 (EOL migration; see Tatum changelog).
 
-## gRPC gateway (`sui-testnet-grpc.gateway.tatum.io`)
+## gRPC gateway (`sui-testnet-grpc.gateway.tatum.io`) — optional
 
 ```json
 {

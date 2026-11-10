@@ -32,7 +32,11 @@ type Sheet =
   | "googleFail";
 
 function googleReady() {
-  return Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  // Opt-in only: hide Google until end-to-end production sign-in is verified.
+  return (
+    process.env.NEXT_PUBLIC_ENABLE_GOOGLE_SIGNIN === "yes" &&
+    Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+  );
 }
 
 function hideFromWalletSheet(wallet: WalletWithRequiredFeatures) {
@@ -222,18 +226,21 @@ export function SignInFlow({
           <Wallet className="h-5 w-5" />
           Connect a wallet
         </Button>
-        <Button
-          variant="outline"
-          className="h-14 w-full rounded-2xl border-2 text-[16px] font-bold"
-          disabled={!googleReady()}
-          onClick={() => startGoogle(false)}
-        >
-          <GoogleG />
-          {googleReady() ? "Continue with Google" : "Coming soon"}
-        </Button>
-        <p className="px-2 text-center text-small text-muted-foreground">
-          No wallet yet? Continue with Google and Kolo sets one up for you. Your money stays yours either way.
-        </p>
+        {googleReady() ? (
+          <>
+            <Button
+              variant="outline"
+              className="h-14 w-full rounded-2xl border-2 text-[16px] font-bold"
+              onClick={() => startGoogle(false)}
+            >
+              <GoogleG />
+              Continue with Google
+            </Button>
+            <p className="px-2 text-center text-small text-muted-foreground">
+              No wallet yet? Continue with Google and Kolo sets one up for you. Your money stays yours either way.
+            </p>
+          </>
+        ) : null}
         <p className="text-center text-[12px] text-muted-foreground">
           By continuing you agree to Kolo&apos;s{" "}
           <Link href="/terms" className="underline">

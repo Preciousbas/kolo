@@ -362,7 +362,8 @@ export async function probeTatumInterfaces(): Promise<{
   }
 
   let graphql: "ok" | "error" = "error";
-  let grpc: "ok" | "error" = "error";
+  // GraphQL is the primary Tatum path for Kolo; gRPC is optional and not probed for health.
+  const grpc: "ok" | "error" | "no-key" | "skipped" = "skipped";
   let jsonrpc: "ok" | "error" | "skipped" = "error";
 
   try {
@@ -371,15 +372,6 @@ export async function probeTatumInterfaces(): Promise<{
     graphql = "ok";
   } catch {
     graphql = "error";
-  }
-
-  try {
-    const { data: client } = await tatumGrpc();
-    // UNCONFIRMED: getChainIdentifier availability on Tatum gRPC gateway.
-    await client.getChainIdentifier({});
-    grpc = "ok";
-  } catch {
-    grpc = "error";
   }
 
   try {

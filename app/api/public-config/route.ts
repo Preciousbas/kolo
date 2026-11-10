@@ -6,6 +6,8 @@ export async function GET() {
   return Response.json({
     packageId: getPackageId() ?? null,
     coinType: getCoinType(),
-    googleEnabled: Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID),
+    googleEnabled:
+      process.env.NEXT_PUBLIC_ENABLE_GOOGLE_SIGNIN === "yes" &&
+      Boolean(process.env.NEXT_PUBLIC_ENOKI_API_KEY && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID),
   });
 }
