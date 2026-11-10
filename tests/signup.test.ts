@@ -187,6 +187,17 @@ describe("route guards", () => {
       username: "ngozi_e",
     });
   });
+
+  it("profile get/save uses the same lowercased address key", async () => {
+    const mixed = ("0x" + "Cd".repeat(32)) as string;
+    await saveProfile({ ...completeProfile, address: mixed, username: "case_ok" });
+    const lower = await getProfile(mixed.toLowerCase());
+    const upper = await getProfile(mixed.toUpperCase());
+    expect(isProfileComplete(lower)).toBe(true);
+    expect(isProfileComplete(upper)).toBe(true);
+    expect(incompleteProfileRedirect(lower)).toBeNull();
+    expect(lower?.address).toBe(mixed.toLowerCase());
+  });
 });
 
 function circleFixture(over: Partial<StoredCircle> = {}): StoredCircle {
