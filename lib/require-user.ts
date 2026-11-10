@@ -8,7 +8,6 @@ export async function requireUser() {
   if (!session) redirect("/");
   const profile = await getProfile(session.address);
   const toProfile = incompleteProfileRedirect(profile);
-  if (toProfile) redirect(toProfile);
-  if (!isProfileComplete(profile)) redirect("/profile");
+  if (toProfile || !isProfileComplete(profile)) redirect("/profile");
   return { session, profile };
 }

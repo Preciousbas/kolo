@@ -28,7 +28,8 @@ export default async function JoinCodePage({ params }: { params: Promise<{ code:
   }
   const profile = await getProfile(session.address);
   const toProfile = incompleteProfileRedirect(profile);
-  if (toProfile || !isProfileComplete(profile)) redirect("/profile");
+  if (toProfile) redirect(toProfile);
+  if (!isProfileComplete(profile)) redirect("/profile");
   return (
     <JoinCircle
       displayName={profile.displayName}

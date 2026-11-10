@@ -15,7 +15,10 @@ export async function sessionFromCookieHeader(header: string | null, now = Date.
 
 export async function getRequestSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
-  return decodeSession(jar.get(SESSION_COOKIE)?.value);
+  const session = await decodeSession(jar.get(SESSION_COOKIE)?.value);
+  if (!session) return null;
+  // Same lowercased 0x… form as profileKey / saveProfile.
+  return { ...session, address: session.address.trim().toLowerCase() };
 }
 
 export function jsonError(message: string, status: number) {
