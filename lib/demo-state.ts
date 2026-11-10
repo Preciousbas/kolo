@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { CircleView } from "./circle";
 import { getDemoCircleId, getPackageId } from "./config";
+import { computeRoundPot } from "./pot";
 
 export type SavedDemoState = {
   circleId: string;
@@ -43,15 +44,20 @@ export function resolveDemoCircleId(): string {
 
 export function savedStateAsCircleView(state: SavedDemoState): CircleView {
   const amountBase = (state.contributionUsd || 20) * 1_000_000;
-  const paidCount = state.paidCount ?? state.paidThisRound.filter(Boolean).length;
+  const paid = state.paidThisRound;
+  const pot = computeRoundPot({
+    paid,
+    contributionUsd: state.contributionUsd || 20,
+    round: state.round,
+  });
   return {
     id: state.circleId || "saved",
     round: state.round,
     rounds: state.memberCount,
     amount: amountBase,
     amountUsd: state.contributionUsd,
-    potValue: paidCount * amountBase,
-    potUsd: paidCount * state.contributionUsd,
+    potValue: Math.round(pot.potUsd * 1_000_000),
+    potUsd: pot.potUsd,
     recipient:
       state.members.find((m) => m.name === state.recipientName)?.address ||
       state.recipientName,

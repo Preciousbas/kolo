@@ -269,9 +269,14 @@ export function parseCircleState(args: {
   const members = fields.members;
   const paid = fields.paid;
   const paidOut = fields.paid_out ?? members.map(() => false);
-  const potValue = potBalance(fields);
   const events = args.events ?? [];
   const payouts = parsePaidOutEvents(events);
+  // Pot this round = paid-this-round × contribution (same source as "Who has paid").
+  // Fall back to on-chain Balance only when nobody is marked paid yet.
+  const paidCount = paid.filter(Boolean).length;
+  const derivedPot = paidCount * amount;
+  const chainPot = potBalance(fields);
+  const potValue = paidCount > 0 ? derivedPot : chainPot;
 
   const memberViews: CircleMemberView[] = members.map((address, i) => {
     let badge: MemberBadge = "scheduled";
